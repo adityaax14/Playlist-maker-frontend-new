@@ -4,6 +4,11 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/dashboard.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import React from "react";
+import CourseDetail from "./pages/CourseDetail";
+import LessonViewer from "./pages/LessonViewer.jsx";
+
+
+
 
 
 function ProtectedRoute({ children }) {
@@ -31,6 +36,24 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/course/:courseId"
+        element={
+          <ProtectedRoute>
+            <CourseDetail />
+          </ProtectedRoute>
+        }
+    />
+    
+    <Route
+  path="/course/:courseId/lesson/:lessonId"
+  element={
+    <ProtectedRoute>
+      <LessonViewer />
+    </ProtectedRoute>
+  }
+/>
+
     </Routes>
   );
 }

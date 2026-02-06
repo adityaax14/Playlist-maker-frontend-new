@@ -15,6 +15,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await logout();
     navigate("/login");
+    setForm("");
   };
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function Dashboard() {
       </button>
     </header>
 
-    <section className="dashboard-section">
+    <section className="dashboard-section-2">
       
       <CreateCourse onCourseCreated={handleCourseCreated} />
     </section>
@@ -51,7 +52,9 @@ export default function Dashboard() {
 
       <div className="course-grid">
         {courses.map((course) => (
-          <div key={course._id} className="course-card">
+          <div key={course._id}
+  className="course-card"
+  onClick={() => navigate(`/course/${course._id}`)}>
             <h4>{course.title}</h4>
             <p>{course.description}</p>
 
