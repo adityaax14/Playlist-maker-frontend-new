@@ -1,17 +1,30 @@
-/* Main layout */
-.lesson-layout {
+/* Background */
+body {
+  margin: 0;
+  background: #050b0e;
+}
+.lesson-wrapper {
   min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at 20% 30%, #0b3b3b, #071a1f 60%, #050b0e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e7f7f7;
+}
+
+/* Main container */
+.lesson-container {
+  width: 100%;
+  max-width: 1400px; /* increased */
+  padding: 80px 80px; /* inner spacing instead of outer */
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 60px;
-  padding: 60px 80px;
-  max-width: 1400px;
-  margin: auto;
-  color: white;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 80px;
   align-items: center;
 }
 
-/* Left side */
+/* LEFT PANEL */
 .lesson-left {
   display: flex;
   flex-direction: column;
@@ -19,83 +32,129 @@
 }
 
 .lesson-badge {
-  background: rgba(67, 206, 162, 0.15);
-  color: #43cea2;
+  background: rgba(0, 255, 200, 0.15);
+  color: #3fffd8;
   padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: 999px;
   width: fit-content;
+  font-size: 14px;
 }
 
 .lesson-title {
-  font-size: 44px;
+  font-size: 52px;
+  font-weight: 700;
   line-height: 1.1;
 }
 
 .lesson-description {
-  opacity: 0.75;
-  font-size: 16px;
+  font-size: 18px;
+  color: #9cc7c7;
+  max-width: 520px;
 }
 
 .lesson-time {
-  background: rgba(67, 206, 162, 0.15);
-  color: #43cea2;
-  padding: 8px 16px;
-  border-radius: 20px;
+  margin-top: 10px;
+  background: rgba(0, 255, 200, 0.12);
+  padding: 8px 14px;
+  border-radius: 999px;
+  width: fit-content;
+  font-size: 14px;
+}
+
+/* Complete button */
+.complete-btn {
+  margin-top: 30px;
+  background: linear-gradient(135deg, #22e3b4, #3ac7ff);
+  border: none;
+  color: #022b2b;
   font-weight: 600;
+  padding: 16px 32px;
+  border-radius: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.25s ease;
   width: fit-content;
 }
 
-/* Video side */
+.complete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 255, 200, 0.25);
+}
+
+/* RIGHT PANEL */
 .lesson-right {
   display: flex;
   justify-content: center;
 }
 
-.lesson-video-box {
+/* Video card */
+.video-card {
   width: 100%;
-  max-width: 900px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 25px;
-  border-radius: 24px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+  max-width: 520px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .lesson-video {
   width: 100%;
-  border-radius: 18px;
-  display: block;
+  border-radius: 14px;
+  background: black;
 }
 
-/* Button */
-.complete-lesson-btn {
-  margin-top: 10px;
-  padding: 16px 40px;
-  border-radius: 32px;
-  border: none;
-  background: linear-gradient(to right, #43cea2, #185a9d);
-  font-size: 17px;
-  font-weight: 600;
+/* Navigation */
+.lesson-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.nav-btn {
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 15px;
   cursor: pointer;
-  transition: 0.25s;
-  width: fit-content;
+  border: none;
+  transition: 0.2s ease;
 }
 
-.complete-lesson-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(24, 90, 157, 0.35);
+.nav-btn.secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #c7dcdc;
+}
+
+.nav-btn.primary {
+  background: linear-gradient(135deg, #22e3b4, #3ac7ff);
+  color: #022b2b;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
 }
 
 /* Responsive */
-@media (max-width: 1000px) {
-  .lesson-layout {
+@media (max-width: 900px) {
+  .lesson-container {
     grid-template-columns: 1fr;
-    padding: 40px 25px;
     gap: 40px;
+    text-align: center;
   }
 
-  .lesson-title {
-    font-size: 34px;
+  .lesson-left {
+    align-items: center;
+  }
+
+  .lesson-description {
+    max-width: 100%;
+  }
+
+  .lesson-navigation {
+    justify-content: center;
+    gap: 16px;
   }
 }

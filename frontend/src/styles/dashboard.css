@@ -552,3 +552,16 @@ body {
 .badge.level {
   background: #185a9d;
 }
+.course-card,
+.stat-card,
+.logout-btn {
+  will-change: transform;
+}
+
+.course-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.course-card:hover {
+  box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+}

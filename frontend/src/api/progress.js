@@ -58,3 +58,16 @@ export const fetchLearningTimeline=async(courseId)=>{
 
   return res.json();
 }
+
+
+export const fetchCreatorAnalytics = async (courseId) => {
+  const res = await fetch(`${BASE_URL}/progress/creator/${courseId}/analytics`, {
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch analytics");
+  }
+
+  return res.json();
+};

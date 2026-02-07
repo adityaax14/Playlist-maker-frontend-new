@@ -53,6 +53,28 @@ useEffect(() => {
     .catch(err => console.error(err));
 }, [courseId]);
 
+const getResumeLessonId = () => {
+  if (!course || !progress) return null;
+
+  
+  if (progress.inProgressLesson) {
+    return progress.inProgressLesson;
+  }
+
+ 
+  const completedSet = new Set(
+    progress.completedLessons?.map(id => id.toString())
+  );
+
+  const firstIncomplete = course.lessons.find(
+    lesson => !completedSet.has(lesson._id.toString())
+  );
+
+  return firstIncomplete?._id || null;
+};
+
+const resumeLessonId=getResumeLessonId();
+
 
 
   if (loading) return <p>Loading course...</p>;
@@ -98,6 +120,10 @@ const isInProgress = (lessonId) =>
     }
   };
 
+  const isCourseCompleted =
+  course.lessons.length > 0 &&
+  progress?.completedLessons?.length === course.lessons.length;
+
   
 
 
@@ -106,6 +132,12 @@ const isInProgress = (lessonId) =>
    
     <AuthLayout>
   <div className="course-detail-container">
+    <button
+  className="back-courses-btn"
+  onClick={() => navigate("/dashboard")}
+>
+  ← Back to Courses
+</button>
 
     {/* Course Header */}
     <div className="course-header">
@@ -118,6 +150,23 @@ const isInProgress = (lessonId) =>
         >
           {showLessonForm ? "Cancel" : "Add Lesson"}
         </button>
+        
+        
+      )}
+      
+         {isCreator && (
+       
+        <button
+  className="analytics-btn"
+  onClick={() => navigate(`/progress/creator/${course._id}/analytics`)}
+>
+  📊 View Analytics
+</button>
+
+        
+      
+        
+        
       )}
 
       <p className="course-desc">{course.description}</p>
@@ -125,6 +174,24 @@ const isInProgress = (lessonId) =>
         Created by {course.creator?.username}
       </span>
     </div>
+    {isCourseCompleted && (
+  <div className="course-complete-banner">
+    🎉 Course Completed
+  </div>
+)}
+
+    
+{resumeLessonId && (
+  <button
+    className="resume-btn"
+    onClick={() =>
+      navigate(`/course/${course._id}/lesson/${resumeLessonId}`)
+    }
+  >
+    Resume Learning
+  </button>
+)}
+
 
     {/* MOVE FORM OUTSIDE HEADER */}
     {showLessonForm && (
