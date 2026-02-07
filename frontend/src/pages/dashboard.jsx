@@ -29,32 +29,50 @@ export default function Dashboard() {
   };
 
   return (
-    <AuthLayout full>
-  <div className="dashboard-wrapper">
+    <div className="dashboard-wrapper">
 
-    <header className="dashboard-header">
-      <h2>
-        Welcome, <span className="username">{user?.username}</span>
-      </h2>
+  <header className="dashboard-header">
+    <h2>
+      Welcome, <span className="username">{user?.username}</span>
+    </h2>
 
-      <button className="logout-btn" onClick={handleLogout}>
-        Logout
-      </button>
-    </header>
+    <button className="logout-btn" onClick={handleLogout}>
+      Logout
+    </button>
+  </header>
 
-    <section className="dashboard-section-2">
-      
+  {/* Stats */}
+  <section className="stats-row">
+    <div className="stat-card">
+      <h4>Total Courses</h4>
+      <p>{courses.length}</p>
+    </div>
+    <div className="stat-card">
+      <h4>Your Progress</h4>
+      <p>Coming soon</p>
+    </div>
+    <div className="stat-card">
+      <h4>Learning Streak</h4>
+      <p>Coming soon</p>
+    </div>
+  </section>
+
+  {/* Main content */}
+  <section className="dashboard-main">
+    <div className="left-panel">
       <CreateCourse onCourseCreated={handleCourseCreated} />
-    </section>
+    </div>
 
-    <section className="dashboard-section">
+    <div className="right-panel">
       <h3>Available Courses</h3>
 
       <div className="course-grid">
         {courses.map((course) => (
-          <div key={course._id}
-  className="course-card"
-  onClick={() => navigate(`/course/${course._id}`)}>
+          <div
+            key={course._id}
+            className="course-card"
+            onClick={() => navigate(`/course/${course._id}`)}
+          >
             <h4>{course.title}</h4>
             <p>{course.description}</p>
 
@@ -67,10 +85,10 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-    </section>
+    </div>
+  </section>
 
-  </div>
-</AuthLayout>
+</div>
 
   );
 }

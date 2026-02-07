@@ -1,137 +1,101 @@
-/* Page background wrapper */
-/* Page container */
-.lesson-viewer-container {
+/* Main layout */
+.lesson-layout {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* stop pretending it's a phone */
-  padding: 64px 32px;
-  background: radial-gradient(
-    1200px 600px at top center,
-    rgba(61, 220, 132, 0.08),
-    transparent 60%
-  );
-}
-
-/* Main card */
-.lesson-viewer-card {
-  width: 100%;
-  max-width: 1200px; /* desktop-first */
-  background: linear-gradient(
-    180deg,
-    rgba(18, 18, 18, 0.98),
-    rgba(10, 10, 10, 0.98)
-  );
-  border-radius: 28px;
-  padding: 44px 48px 40px;
-  box-shadow:
-    0 40px 90px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-/* Meta row */
-.lesson-meta {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 60px;
+  padding: 60px 80px;
+  max-width: 1400px;
+  margin: auto;
+  color: white;
   align-items: center;
-  margin-bottom: 22px;
+}
+
+/* Left side */
+.lesson-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .lesson-badge {
-  background: rgba(61, 220, 132, 0.18);
-  color: #3ddc84;
-  padding: 7px 16px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-}
-
-.lesson-duration {
-  font-size: 0.85rem;
-  color: #9adfb9;
-}
-
-/* Title */
-.lesson-title {
-  font-size: 2.6rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 12px;
-}
-
-/* Description */
-.lesson-description {
-  font-size: 1.1rem;
-  line-height: 1.75;
-  color: #cfcfcf;
-  max-width: 70%;
-  margin-bottom: 34px;
-}
-
-/* Video wrapper */
-.lesson-video-wrapper {
-  width: 100%;
-  background: #000;
+  background: rgba(67, 206, 162, 0.15);
+  color: #43cea2;
+  padding: 6px 14px;
   border-radius: 20px;
-  overflow: hidden;
-  margin-bottom: 36px;
-  box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
 }
 
-/* Proper aspect ratio */
+.lesson-title {
+  font-size: 44px;
+  line-height: 1.1;
+}
+
+.lesson-description {
+  opacity: 0.75;
+  font-size: 16px;
+}
+
+.lesson-time {
+  background: rgba(67, 206, 162, 0.15);
+  color: #43cea2;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Video side */
+.lesson-right {
+  display: flex;
+  justify-content: center;
+}
+
+.lesson-video-box {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 25px;
+  border-radius: 24px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
 .lesson-video {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  height: auto;
+  border-radius: 18px;
   display: block;
-  background: #000;
 }
 
-/* Bottom actions */
-.lesson-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* CTA */
+/* Button */
 .complete-lesson-btn {
-  background: linear-gradient(135deg, #3ddc84, #2ecc71);
-  color: #08130c;
+  margin-top: 10px;
+  padding: 16px 40px;
+  border-radius: 32px;
   border: none;
-  padding: 16px 34px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  border-radius: 16px;
+  background: linear-gradient(to right, #43cea2, #185a9d);
+  font-size: 17px;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: 0.25s;
+  width: fit-content;
 }
 
 .complete-lesson-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 46px rgba(61, 220, 132, 0.45);
+  box-shadow: 0 12px 25px rgba(24, 90, 157, 0.35);
 }
 
-.complete-lesson-btn:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-/* Responsive sanity */
-@media (max-width: 900px) {
-  .lesson-viewer-card {
-    padding: 32px 26px;
+/* Responsive */
+@media (max-width: 1000px) {
+  .lesson-layout {
+    grid-template-columns: 1fr;
+    padding: 40px 25px;
+    gap: 40px;
   }
 
   .lesson-title {
-    font-size: 2rem;
-  }
-
-  .lesson-description {
-    max-width: 100%;
+    font-size: 34px;
   }
 }
