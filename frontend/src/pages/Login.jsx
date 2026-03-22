@@ -1,10 +1,7 @@
-
-import React, { useState, useEffect } from "react";
-import AuthLayout from "../components/AuthLayout.jsx";
+import React, { useState } from "react";
 import { loginUser } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-
 import "../styles/auth.css";
 
 export default function Login() {
@@ -16,11 +13,6 @@ export default function Login() {
   const { setUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
-
-  // reset form whenever login page mounts
-  useEffect(() => {
-    setForm({ email: "", password: "" });
-  }, []);
 
   const handleChange = (e) => {
     setForm(prev => ({
@@ -35,10 +27,8 @@ export default function Login() {
 
     try {
       const res = await loginUser(form);
-
       if (res?.data?.user) {
         setUser(res.data.user);
-        setForm({ email: "", password: "" });
         navigate("/dashboard", { replace: true });
       }
     } catch (err) {
@@ -47,63 +37,78 @@ export default function Login() {
   };
 
   return (
-  <div className="login-page">
-    <div className="login-container">
-      
-      {/* LEFT SIDE */}
-     <div className="login-left">
-      <h1 className="brand">Learning Hub</h1>
-  <div className="login-box">
-    <h2 className="auth-title">Welcome Back</h2>
-    <p className="auth-subtitle">
-      Login to continue your learning journey
-    </p>
+    <div className="auth-wrapper">
 
-    <form
-      onSubmit={handleSubmit}
-      className="auth-form"
-      autoComplete="off"
-    >
-      <input
-        name="email"
-        type="email"
-        value={form.email}
-        onChange={handleChange}
-        placeholder="Email"
-        autoComplete="email"
-      />
+      {/* LEFT SECTION */}
+      <div className="auth-hero">
+        <h1>
+          Learn with <span>purpose.</span>
+        </h1>
 
-      <input
-        name="password"
-        type="password"
-        value={form.password}
-        onChange={handleChange}
-        placeholder="Password"
-        autoComplete="new-password"
-      />
-
-      <button type="submit">Sign In</button>
-    </form>
-
-    {error && <p className="error-text">{error}</p>}
-  </div>
-</div>
-
-      {/* RIGHT SIDE */}
-      <div className="login-right">
-        <h2>New Here?</h2>
         <p>
-          Sign up and start tracking your learning journey with
-          the Learning Hub.
+          Organize YouTube videos into structured learning paths.
+          Track progress, share with others, and never lose your place.
         </p>
-        <button
-          className="signup-btn"
-          onClick={() => navigate("/register")}
-        >
-          Sign Up
-        </button>
+
+        <div className="hero-features">
+          <div>▶ Curate learning playlists</div>
+          <div>📊 Track your progress deeply</div>
+          <div>🔥 Explore trending playlists</div>
+          <div>💬 Rate & comment with the community</div>
+        </div>
+      </div>
+
+      {/* RIGHT SECTION */}
+      <div className="auth-panel">
+        <div className="auth-tabs">
+          <button className="active">Sign In</button>
+          <button onClick={() => navigate("/register")}>
+            Create Account
+          </button>
+        </div>
+
+        <h2>Welcome back</h2>
+        <p className="panel-subtitle">
+          Enter your credentials to access your playlists
+        </p>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          
+          <div className="input-group">
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="input-group password-group">
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+            <span
+              className="forgot-link"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Forgot password?
+            </span>
+          </div>
+
+          {error && <p className="error-text">{error}</p>}
+
+          <button type="submit" className="primary-btn">
+            Sign In →
+          </button>
+        </form>
       </div>
     </div>
-  </div>
-);
+  );
 }

@@ -1,12 +1,13 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/dashboard.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
-import React from "react";
-import CourseDetail from "./pages/CourseDetail";
-import LessonViewer from "./pages/LessonViewer.jsx";
-import CreatorAnalytics from "./pages/CreatorAnalytics.jsx";
+import Explore from "./pages/Explore.jsx";
+import PlaylistDetail from "./pages/PlaylistDetail.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 
 
@@ -28,7 +29,7 @@ export default function App() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-
+      
       <Route
         path="/dashboard"
         element={
@@ -37,31 +38,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/course/:courseId"
-        element={
-          <ProtectedRoute>
-            <CourseDetail />
+      <Route path="/explore" element={
+        <ProtectedRoute>
+            <Explore />
           </ProtectedRoute>
-        }
-    />
-    
-    <Route
-  path="/course/:courseId/lesson/:lessonId"
-  element={
-    <ProtectedRoute>
-      <LessonViewer />
-    </ProtectedRoute>
-  }
-/>
- <Route
-  path="/progress/creator/:courseId/analytics"
-  element={
-    <ProtectedRoute>
-      <CreatorAnalytics />
-    </ProtectedRoute>
-  }
-/>
+      }
+      />
+      <Route path="/playlist/:playlistId/:videoId?" element={<PlaylistDetail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      
 
     </Routes>
   );
