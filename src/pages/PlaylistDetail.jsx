@@ -8,7 +8,7 @@ import {
   importYoutubePlaylist
 } from "../api/playlistVideo.js";
 import { getPlaylistById } from "../api/playlist.js";
-import "../styles/playlistDetail.css";
+import "../styles/PlaylistDetail.css";
 import YouTube from "react-youtube";
 import {
   updateVideoProgress,
