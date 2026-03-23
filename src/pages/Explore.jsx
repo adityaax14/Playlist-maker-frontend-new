@@ -9,10 +9,10 @@ import {
 import { searchPlaylists } from "../api/Search.api.js";
 import "../styles/explore.css";
 import "../styles/dashboard.css";
-import StarRating from "./StarRating";
+import StarRating from "./StarRating.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { logoutUser } from "../api/auth";
-import { useAuth } from "../context/AuthContext";
+import { logoutUser } from "../api/auth.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /* ─────────────────────────────────────────────
    CONSTANTS
