@@ -84,7 +84,7 @@ function PlaylistCard({ playlist, index, savedIds, onSave, query = "" }) {
     <div
       className="pc-card"
       style={{ "--delay": `${index * 55}ms` }}
-      onClick={() => navigate(`/playlist/${playlist._id}`)}
+      onClick={() => navigate(`/playlist/${playlist._id}`, { state: { from: "/explore" } })}
     >
       <div className="pc-thumb">
         {playlist.videos?.[0]?.thumbnailUrl ? (
@@ -161,7 +161,10 @@ function PlaylistCard({ playlist, index, savedIds, onSave, query = "" }) {
             </svg>
             {isSaved ? "Saved" : "Save"}
           </button>
-          <button className="pc-open-btn" onClick={() => navigate(`/playlist/${playlist._id}`)}>
+          <button
+            className="pc-open-btn"
+            onClick={() => navigate(`/playlist/${playlist._id}`, { state: { from: "/explore" } })}
+          >
             Open
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -172,6 +175,7 @@ function PlaylistCard({ playlist, index, savedIds, onSave, query = "" }) {
     </div>
   );
 }
+
 
 /* ─────────────────────────────────────────────
    SKELETON

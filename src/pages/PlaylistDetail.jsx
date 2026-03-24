@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   addVideoToPlaylist,
   deleteVideoFromPlaylist,
@@ -32,6 +32,7 @@ import {
 export default function PlaylistDetail() {
   const { playlistId, videoId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [playlist,         setPlaylist]         = useState(null);
   const [videoInput,       setVideoInput]        = useState("");
@@ -54,7 +55,7 @@ export default function PlaylistDetail() {
   const [targetDate,       setTargetDate]        = useState("");
 
   const playerRef = useRef(null);
-
+const backPath = useRef(location.state?.from || "/dashboard");
   /* ── Load Playlist ── */
   useEffect(() => {
     const loadPlaylist = async () => {
@@ -92,6 +93,7 @@ export default function PlaylistDetail() {
   const handlePrev = () => {
     if (currentIndex > 0) {
       const prev = playlist.videos[currentIndex - 1];
+      setActiveVideo(prev); 
       navigate(`/playlist/${playlistId}/${prev._id}`);
     }
   };
@@ -99,6 +101,7 @@ export default function PlaylistDetail() {
   const handleNext = () => {
     if (currentIndex < playlist.videos.length - 1) {
       const next = playlist.videos[currentIndex + 1];
+      setActiveVideo(next); 
       navigate(`/playlist/${playlistId}/${next._id}`);
     }
   };
@@ -275,7 +278,7 @@ export default function PlaylistDetail() {
 
       {/* ── Header ── */}
       <div className="playlist-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
+        <button className="back-btn" onClick={() => navigate(backPath.current)}>
           ← Back to Playlists
         </button>
 
@@ -324,9 +327,9 @@ export default function PlaylistDetail() {
         <>
           <div className="insight-bar">
             <span className={`status-badge ${goalData.status}`}>
-              {goalData.status === "ahead"    && "🔥 Ahead"}
-              {goalData.status === "on_track" && "👍 On Track"}
-              {goalData.status === "behind"   && "⚠️ Behind"}
+              {goalData.status === "ahead"    && " Ahead"}
+              {goalData.status === "on_track" && " On Track"}
+              {goalData.status === "behind"   && " Behind"}
             </span>
             <span className="projection-text">{goalData.projectedMessage}</span>
           </div>
@@ -388,7 +391,7 @@ export default function PlaylistDetail() {
                 ⚠️ Watch {Math.abs(goalData.todayDiffMinutes)} more min today to complete today's goal.
               </p>
             ) : (
-              <p className="success">✅ You're ahead today! Keep it up 🚀</p>
+              <p className="success">✅ You're ahead today! Keep it up </p>
             )}
           </div>
         </>
