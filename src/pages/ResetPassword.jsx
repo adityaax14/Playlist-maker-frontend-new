@@ -38,7 +38,7 @@ export default function ResetPassword() {
 
     try {
      await axios.post(
-  "http://localhost:8000/api/v2/users/verify-otp",
+  "http://playlist-maker-backend-jpln.vercel.app/api/v2/users/verify-otp",
   {
     email,
     otp: otp.join(""),

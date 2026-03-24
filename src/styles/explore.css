@@ -697,3 +697,123 @@
   font-weight: 700;
 }
 .ex-page-ellipsis { color: var(--text-3); padding: 0 4px; line-height: 36px; }
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  /* containers */
+  .db-main,
+  .ex-wrap,
+  .playlist-page {
+    padding: 20px !important;
+  }
+
+  /* nav */
+  .db-nav {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .db-nav-brand span {
+    display: none;
+  }
+
+  /* buttons stack */
+  .db-nav-actions {
+    gap: 6px;
+  }
+
+  .db-nav-btn,
+  .db-nav-create,
+  .db-nav-logout {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* grids */
+  .db-grid,
+  .ex-grid,
+  .video-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* analytics */
+  .analytics-container {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* player */
+  .player-layout {
+    grid-template-columns: 1fr !important;
+    padding: 10px !important;
+  }
+
+  /* header */
+  .playlist-header {
+    padding: 20px 12px !important;
+  }
+
+  .back-btn {
+    position: static;
+    margin-bottom: 10px;
+  }
+
+  .streak-badge {
+    position: static;
+    margin-top: 10px;
+  }
+
+  /* search */
+  .ex-search-wrap {
+    flex-direction: column;
+  }
+
+  .ex-search-btn {
+    width: 100%;
+  }
+
+  /* cards */
+  .db-card-body,
+  .pc-body {
+    padding: 14px !important;
+  }
+
+  /* stats */
+  .db-stats {
+    flex-direction: column;
+  }
+
+  .db-stat-divider {
+    display: none;
+  }
+
+  /* form */
+  .db-form {
+    padding: 16px;
+  }
+
+}
+
+@media (max-width: 1024px) {
+
+.analytics-container {
+  grid-template-columns: repeat(2,1fr);
+}
+
+.player-layout {
+  grid-template-columns: 1fr;
+}
+
+.db-grid {
+  grid-template-columns: repeat(2,1fr);
+}
+
+.ex-grid {
+  grid-template-columns: repeat(2,1fr);
+}
+
+}
+html, body {
+  overflow-x: hidden;
+}

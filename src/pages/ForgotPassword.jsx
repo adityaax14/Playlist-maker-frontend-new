@@ -16,7 +16,7 @@ export default function ForgotPassword() {
 
     try {
       await axios.post(
-        "http://localhost:8000/api/v2/users/send-otp",
+        "http://playlist-maker-backend-jpln.vercel.app/api/v2/users/send-otp",
         { email },
         { withCredentials: true }
       );
