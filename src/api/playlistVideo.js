@@ -25,16 +25,13 @@ export const deleteVideoFromPlaylist = async (playlistId, videoId) => {
   return res.json();
 };
 
-export const reorderVideos = async (playlistId, orderedIds) => {
-  const res = await fetch(
-    `${BASE_URL}/${playlistId}/reorder`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ orderedIds }),
-    }
-  );
+export const reorderVideos = async (playlistId, videoOrder) => {
+  const res = await fetch(`${BASE_URL}/${playlistId}/reorder`, {
+    method: "POST",        // ← match the route
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ videoOrder }), // ← match what controller expects
+  });
 
   if (!res.ok) throw new Error("Failed to reorder");
   return res.json();

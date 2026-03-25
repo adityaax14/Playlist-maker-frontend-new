@@ -910,3 +910,14 @@
 html, body {
   overflow-x: hidden;
 }
+.drag-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0 40px 10px;
+}

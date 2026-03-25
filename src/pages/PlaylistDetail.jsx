@@ -5,7 +5,8 @@ import {
   deleteVideoFromPlaylist,
   getVideoNote,
   saveVideoNote,
-  importYoutubePlaylist
+  importYoutubePlaylist,
+  reorderVideos
 } from "../api/playlistVideo.js";
 import { getPlaylistById } from "../api/playlist.js";
 import "../styles/PlaylistDetail.css";
@@ -31,8 +32,8 @@ import {
 
 export default function PlaylistDetail() {
   const { playlistId, videoId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
   const [playlist,         setPlaylist]         = useState(null);
   const [videoInput,       setVideoInput]        = useState("");
@@ -54,36 +55,42 @@ export default function PlaylistDetail() {
   const [dailyMinutes,     setDailyMinutes]      = useState("");
   const [targetDate,       setTargetDate]        = useState("");
 
-  const playerRef = useRef(null);
-const backPath = useRef(location.state?.from || "/dashboard");
+  const playerRef    = useRef(null);
+  const backPath     = useRef(location.state?.from || "/dashboard");
+
+  /* ── Drag refs ── */
+  const dragItem     = useRef(null);
+  const dragOverItem = useRef(null);
+
   /* ── Load Playlist ── */
   useEffect(() => {
     const loadPlaylist = async () => {
       try {
-        const res = await getPlaylistById(playlistId);
+        const res  = await getPlaylistById(playlistId);
         const data = res.data;
         setPlaylist(data);
 
         if (data.videos?.length > 0) {
           const selected =
-            data.videos.find((v) => v._id === videoId) ||
-            data.videos[0];
-
+            data.videos.find((v) => v._id === videoId) || data.videos[0];
           setActiveVideo(selected);
-
           if (!videoId) {
-            navigate(`/playlist/${playlistId}/${selected._id}`, {
-              replace: true
-            });
+            navigate(`/playlist/${playlistId}/${selected._id}`, { replace: true });
           }
         }
       } catch (err) {
         console.error(err);
       }
     };
-
     loadPlaylist();
   }, [playlistId]);
+
+  /* ── Video switching — update activeVideo when URL videoId changes ── */
+  useEffect(() => {
+    if (!playlist || !videoId) return;
+    const selected = playlist.videos.find((v) => v._id === videoId);
+    if (selected) setActiveVideo(selected);
+  }, [videoId, playlist]);
 
   /* ── Navigation ── */
   const currentIndex = playlist?.videos?.findIndex(
@@ -93,7 +100,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
   const handlePrev = () => {
     if (currentIndex > 0) {
       const prev = playlist.videos[currentIndex - 1];
-      setActiveVideo(prev); 
+      setActiveVideo(prev);
       navigate(`/playlist/${playlistId}/${prev._id}`);
     }
   };
@@ -101,7 +108,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
   const handleNext = () => {
     if (currentIndex < playlist.videos.length - 1) {
       const next = playlist.videos[currentIndex + 1];
-      setActiveVideo(next); 
+      setActiveVideo(next);
       navigate(`/playlist/${playlistId}/${next._id}`);
     }
   };
@@ -110,11 +117,36 @@ const backPath = useRef(location.state?.from || "/dashboard");
     playerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  /* ── Drag & Drop Reorder ── */
+  const handleDragEnd = async () => {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) return;
+
+    const videos      = [...playlist.videos];
+    const draggedItem = videos.splice(dragItem.current, 1)[0];
+    videos.splice(dragOverItem.current, 0, draggedItem);
+
+    // Optimistic UI update
+    setPlaylist((prev) => ({ ...prev, videos }));
+
+    // Persist to backend
+    const videoOrder = videos.map((v, i) => ({ videoId: v._id, order: i + 1 }));
+    try {
+      await reorderVideos(playlistId, videoOrder);
+    } catch (err) {
+      console.error("Reorder failed", err);
+      // Optionally revert here by reloading playlist
+    }
+
+    dragItem.current     = null;
+    dragOverItem.current = null;
+  };
+
   /* ── Add Video ── */
   const handleAddVideo = async () => {
     if (!videoInput) return;
     try {
-      const url = new URL(videoInput);
+      const url             = new URL(videoInput);
       const videoIdParam    = url.searchParams.get("v");
       const playlistIdParam = url.searchParams.get("list");
 
@@ -134,7 +166,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
     window.location.reload();
   };
 
-  /* ── Load Note — fires every time videoId changes ── */
+  /* ── Load Note ── */
   useEffect(() => {
     if (!videoId) return;
     const loadNote = async () => {
@@ -146,7 +178,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
       }
     };
     loadNote();
-  }, [playlistId, videoId]); // ← videoId from URL, updates on navigate
+  }, [playlistId, videoId]);
 
   const handleSaveNote = async () => {
     if (!videoId) return;
@@ -188,7 +220,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
   /* ── Mark Completed ── */
   const handleMarkCompleted = async (vid) => {
     try {
-      const res = await markVideoCompleted(playlistId, vid);
+      const res       = await markVideoCompleted(playlistId, vid);
       const completed = res.data.completed;
 
       const updatedMap = {
@@ -257,9 +289,9 @@ const backPath = useRef(location.state?.from || "/dashboard");
   const handleSetGoal = async () => {
     try {
       let payload = { goalType };
-      if      (goalType === "days")          payload.targetDays          = Number(targetDays);
-      else if (goalType === "daily_minutes") payload.dailyTargetMinutes  = Number(dailyMinutes);
-      else if (goalType === "target_date")   payload.targetDate          = targetDate;
+      if      (goalType === "days")          payload.targetDays         = Number(targetDays);
+      else if (goalType === "daily_minutes") payload.dailyTargetMinutes = Number(dailyMinutes);
+      else if (goalType === "target_date")   payload.targetDate         = targetDate;
 
       await setPlaylistGoal(playlistId, payload);
       setShowGoalModal(false);
@@ -279,7 +311,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
       {/* ── Header ── */}
       <div className="playlist-header">
         <button className="back-btn" onClick={() => navigate(backPath.current)}>
-          ← Back to Playlists
+          ← Back
         </button>
 
         <div className="streak-badge">🔥 {streak} Day Streak</div>
@@ -309,7 +341,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
       {/* ── Goal Buttons ── */}
       <div className="goal-buttons">
         <button className="set-goal-btn" onClick={() => setShowGoalModal(true)}>
-           Set Goal
+          Set Goal
         </button>
         <button
           className="track-goal-btn"
@@ -318,7 +350,7 @@ const backPath = useRef(location.state?.from || "/dashboard");
             if (!showAnalytics) loadAnalytics();
           }}
         >
-           Track Goal
+          Track Goal
         </button>
       </div>
 
@@ -327,9 +359,9 @@ const backPath = useRef(location.state?.from || "/dashboard");
         <>
           <div className="insight-bar">
             <span className={`status-badge ${goalData.status}`}>
-              {goalData.status === "ahead"    && " Ahead"}
-              {goalData.status === "on_track" && " On Track"}
-              {goalData.status === "behind"   && " Behind"}
+              {goalData.status === "ahead"    && "Ahead"}
+              {goalData.status === "on_track" && "On Track"}
+              {goalData.status === "behind"   && "Behind"}
             </span>
             <span className="projection-text">{goalData.projectedMessage}</span>
           </div>
@@ -388,10 +420,10 @@ const backPath = useRef(location.state?.from || "/dashboard");
           <div className="action-feedback">
             {goalData.todayDiffMinutes < 0 ? (
               <p className="warning">
-                ⚠️ Watch {Math.abs(goalData.todayDiffMinutes)} more min today to complete today's goal.
+                ⚠️ Watch {Math.abs(goalData.todayDiffMinutes)} more min today to stay on track.
               </p>
             ) : (
-              <p className="success">✅ You're ahead today! Keep it up </p>
+              <p className="success">✅ You're ahead today! Keep it up</p>
             )}
           </div>
         </>
@@ -413,8 +445,6 @@ const backPath = useRef(location.state?.from || "/dashboard");
         <div className="goal-modal">
           <div className="goal-modal-content">
             <h2>Set Your Goal</h2>
-
-            {/* FIX 2: "days" option restored */}
             <select value={goalType} onChange={(e) => setGoalType(e.target.value)}>
               <option value="days">Finish in X Days</option>
               <option value="daily_minutes">Watch X min/day</option>
@@ -478,14 +508,14 @@ const backPath = useRef(location.state?.from || "/dashboard");
               disabled={currentIndex <= 0}
               className="nav-btn"
             >
-              ⬅ Previous
+              ← Previous
             </button>
             <button
               onClick={handleNext}
               disabled={currentIndex >= playlist.videos.length - 1}
               className="nav-btn primary"
             >
-              Next ➡
+              Next →
             </button>
           </div>
         </div>
@@ -502,18 +532,36 @@ const backPath = useRef(location.state?.from || "/dashboard");
           </button>
         </div>
       </div>
+       <p className="drag-hint">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="9"  cy="5"  r="1" fill="currentColor"/>
+            <circle cx="15" cy="5"  r="1" fill="currentColor"/>
+            <circle cx="9"  cy="12" r="1" fill="currentColor"/>
+            <circle cx="15" cy="12" r="1" fill="currentColor"/>
+            <circle cx="9"  cy="19" r="1" fill="currentColor"/>
+            <circle cx="15" cy="19" r="1" fill="currentColor"/>
+          </svg>
+          Drag to reorder
+        </p>
 
-      {/* ── Video List ── */}
+      {/* ── Video List with Drag & Drop ── */}
       <div className="video-list">
-        {playlist.videos?.map((video) => {
+       
+
+        {playlist.videos?.map((video, index) => {
           const progress = progressMap[video._id];
-          const status   = !progress ? "not-started"
+          const status   = !progress        ? "not-started"
                          : progress.completed ? "completed" : "in-progress";
 
           return (
             <div
               key={video._id}
               className={`video-card ${activeVideo?._id === video._id ? "video-card--active" : ""}`}
+              draggable
+              onDragStart={() => { dragItem.current = index; }}
+              onDragEnter={() => { dragOverItem.current = index; }}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => e.preventDefault()}
               onClick={async () => {
                 try {
                   await updateVideoProgress(playlistId, video._id, 1);
@@ -522,13 +570,26 @@ const backPath = useRef(location.state?.from || "/dashboard");
                     [video._id]: { ...(prev[video._id] || {}), completed: false, seconds: 1 }
                   }));
                 } catch {}
-
                 setActiveVideo(video);
-                // FIX 1: navigate so videoId URL param updates → note useEffect re-fires
                 navigate(`/playlist/${playlistId}/${video._id}`);
                 scrollToPlayer();
               }}
             >
+              {/* Drag handle */}
+              <div
+                className="drag-handle"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="9"  cy="5"  r="1" fill="currentColor"/>
+                  <circle cx="15" cy="5"  r="1" fill="currentColor"/>
+                  <circle cx="9"  cy="12" r="1" fill="currentColor"/>
+                  <circle cx="15" cy="12" r="1" fill="currentColor"/>
+                  <circle cx="9"  cy="19" r="1" fill="currentColor"/>
+                  <circle cx="15" cy="19" r="1" fill="currentColor"/>
+                </svg>
+              </div>
+
               <img src={video.thumbnailUrl} alt={video.title} className="video-thumb" />
 
               <div className="video-details">
