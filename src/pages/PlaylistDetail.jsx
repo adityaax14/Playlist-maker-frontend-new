@@ -52,7 +52,7 @@ export default function PlaylistDetail() {
   const [chartData,        setChartData]         = useState([]);
   const [showAnalytics,    setShowAnalytics]     = useState(false);
   const [showGoalModal,    setShowGoalModal]     = useState(false);
-  const [goalType,         setGoalType]          = useState("days");
+  const [goalType, setGoalType] = useState("target_date");
   const [targetDays,       setTargetDays]        = useState("");
   const [dailyMinutes,     setDailyMinutes]      = useState("");
   const [targetDate,       setTargetDate]        = useState("");
@@ -302,23 +302,24 @@ export default function PlaylistDetail() {
   };
 
   /* ── Set Goal ── */
-  const handleSetGoal = async () => {
-    try {
-      let payload = { goalType };
-      if      (goalType === "days")          payload.targetDays         = Number(targetDays);
-      else if (goalType === "daily_minutes") payload.dailyTargetMinutes = Number(dailyMinutes);
-      else if (goalType === "target_date")   payload.targetDate         = targetDate;
+ const handleSetGoal = async () => {
+  try {
+    let payload = { goalType };
 
-      await setPlaylistGoal(playlistId, payload);
-      setShowGoalModal(false);
-      await loadAnalytics();
-      setShowAnalytics(true);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to set goal");
-    }
-  };
+    if (goalType === "daily_minutes")
+      payload.dailyTargetMinutes = Number(dailyMinutes);
+    else if (goalType === "target_date")
+      payload.targetDate = targetDate;
 
+    await setPlaylistGoal(playlistId, payload);
+    setShowGoalModal(false);
+    await loadAnalytics();
+    setShowAnalytics(true);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to set goal");
+  }
+};
   if (!playlist) return <p>Loading...</p>;
   const hasVideos = playlist.videos?.length > 0;
 
@@ -509,12 +510,10 @@ export default function PlaylistDetail() {
         <div className="goal-modal">
           <div className="goal-modal-content">
             <h2>Set Your Goal</h2>
-            <select value={goalType} onChange={(e) => setGoalType(e.target.value)}>
-              <option value="target_date">Finish by Date</option>
-              <option value="daily_minutes">Watch X min/day</option>
-              
-            </select>
-
+           <select value={goalType} onChange={(e) => setGoalType(e.target.value)}>
+  <option value="target_date">Finish by Date</option>
+  <option value="daily_minutes">Watch X min/day</option>
+</select>
             {goalType === "target_date" && (
               <input
                 type="date"
