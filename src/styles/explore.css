@@ -817,3 +817,49 @@
 html, body {
   overflow-x: hidden;
 }
+
+/* ── Add these to your existing explore.css ── */
+
+/* Extra grid row for "load more" skeletons — no top gap */
+.ex-grid--more {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* End of results label */
+.ex-end-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0 20px;
+  gap: 12px;
+  color: var(--text-3, #3e3e48);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ex-end-label::before,
+.ex-end-label::after {
+  content: '';
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+/* Loading spinner used in search button */
+.ex-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: ex-spin 0.7s linear infinite;
+}
+
+@keyframes ex-spin {
+  to { transform: rotate(360deg); }
+}

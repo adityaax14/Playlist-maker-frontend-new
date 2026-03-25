@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   getTrendingPlaylists,
   getTopRatedPlaylists,
@@ -30,12 +30,13 @@ const SORT_OPTIONS = [
   { value: "newest",    label: "Newest"        },
 ];
 
+const SEARCH_LIMIT = 20;
+
 /* ─────────────────────────────────────────────
    USER MENU
 ───────────────────────────────────────────── */
 function UserMenu({ username }) {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="db-user-menu" onBlur={() => setOpen(false)} tabIndex={0}>
       <button className="db-user-avatar" onClick={() => setOpen((v) => !v)}>
@@ -83,7 +84,7 @@ function PlaylistCard({ playlist, index, savedIds, onSave, query = "" }) {
   return (
     <div
       className="pc-card"
-      style={{ "--delay": `${index * 55}ms` }}
+      style={{ "--delay": `${(index % SEARCH_LIMIT) * 55}ms` }}
       onClick={() => navigate(`/playlist/${playlist._id}`, { state: { from: "/explore" } })}
     >
       <div className="pc-thumb">
@@ -176,7 +177,6 @@ function PlaylistCard({ playlist, index, savedIds, onSave, query = "" }) {
   );
 }
 
-
 /* ─────────────────────────────────────────────
    SKELETON
 ───────────────────────────────────────────── */
@@ -194,30 +194,23 @@ function SkeletonCard({ i }) {
 }
 
 /* ─────────────────────────────────────────────
-   PAGINATION
+   INFINITE SCROLL SENTINEL
 ───────────────────────────────────────────── */
-function Pagination({ current, total, onChange }) {
-  if (total <= 1) return null;
-  const pages = [];
-  const delta = 2;
-  for (let i = 1; i <= total; i++) {
-    if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-      pages.push(i);
-    } else if (pages[pages.length - 1] !== "…") {
-      pages.push("…");
-    }
-  }
-  return (
-    <div className="ex-pagination">
-      <button className="ex-page-btn" disabled={current === 1} onClick={() => onChange(current - 1)}>← Prev</button>
-      {pages.map((p, i) =>
-        p === "…"
-          ? <span key={i} className="ex-page-ellipsis">…</span>
-          : <button key={p} className={`ex-page-btn ${p === current ? "ex-page-btn--active" : ""}`} onClick={() => onChange(p)}>{p}</button>
-      )}
-      <button className="ex-page-btn" disabled={current === total} onClick={() => onChange(current + 1)}>Next →</button>
-    </div>
-  );
+function ScrollSentinel({ onVisible }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) onVisible(); },
+      { rootMargin: "200px" }   // trigger 200px before reaching the bottom
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onVisible]);
+
+  return <div ref={ref} style={{ height: 1 }} />;
 }
 
 /* ─────────────────────────────────────────────
@@ -228,48 +221,50 @@ export default function Explore() {
   const navigate = useNavigate();
   const { user }  = useAuth();
 
+  // ── Browse sections ──
   const [trending,      setTrending]      = useState([]);
   const [topRated,      setTopRated]      = useState([]);
   const [newest,        setNewest]        = useState([]);
   const [loading,       setLoading]       = useState(true);
+  const [activeSection, setActiveSection] = useState("trending");
 
+  // ── Search state ──
   const [inputVal,      setInputVal]      = useState(searchParams.get("q") || "");
   const [activeQuery,   setActiveQuery]   = useState(searchParams.get("q") || "");
   const [searchResults, setSearchResults] = useState([]);
   const [searchTotal,   setSearchTotal]   = useState(0);
   const [searchPage,    setSearchPage]    = useState(1);
-  const [searchPages,   setSearchPages]   = useState(1);
+  const [hasMore,       setHasMore]       = useState(false);
   const [sort,          setSort]          = useState("relevance");
-  const [searching,     setSearching]     = useState(false);
+  const [searching,     setSearching]     = useState(false);   // initial/sort search
+  const [loadingMore,   setLoadingMore]   = useState(false);   // scroll-load
   const [searched,      setSearched]      = useState(!!searchParams.get("q"));
 
-  const [activeSection, setActiveSection] = useState("trending");
-  const [savedIds,      setSavedIds]      = useState(new Set());
+  // ── Saved ──
+  const [savedIds, setSavedIds] = useState(new Set());
+
+  // ── Prevent duplicate concurrent fetches ──
+  const fetchingRef = useRef(false);
 
   /* ── Save scroll position when leaving ── */
   useEffect(() => {
-    const handleScroll = () => {
-      sessionStorage.setItem("exploreScrollY", window.scrollY);
-    };
+    const handleScroll = () => sessionStorage.setItem("exploreScrollY", window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* ── Restore scroll position when returning ── */
+  /* ── Restore scroll position ── */
   useEffect(() => {
     const savedY = sessionStorage.getItem("exploreScrollY");
-    if (savedY) {
-      setTimeout(() => {
-        window.scrollTo({ top: parseInt(savedY), behavior: "instant" });
-      }, 50);
-    }
+    if (savedY) setTimeout(() => window.scrollTo({ top: parseInt(savedY), behavior: "instant" }), 50);
   }, [loading]);
 
+  /* ── Initial load ── */
   useEffect(() => {
     loadSections();
     loadSavedIds();
     const q = searchParams.get("q");
-    if (q) runSearch(q, 1, "relevance");
+    if (q) runSearch(q, 1, "relevance", false);
   }, []);
 
   const loadSections = async () => {
@@ -293,20 +288,44 @@ export default function Explore() {
     } catch {}
   };
 
-  const runSearch = async (q, page = 1, srt = sort) => {
+  /* ── Core search function ──
+     append = false → fresh search (replace results)
+     append = true  → load next page (append to results)
+  ── */
+  const runSearch = async (q, page = 1, srt = sort, append = false) => {
     if (!q.trim()) return;
-    setSearching(true);
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+
+    if (append) setLoadingMore(true);
+    else        setSearching(true);
+
     setSearched(true);
+
     try {
-      const res = await searchPlaylists({ q, page, limit: 20, sort: srt });
-      setSearchResults(res.data.results);
-      setSearchTotal(res.data.pagination.total);
-      setSearchPages(res.data.pagination.totalPages);
+      const res = await searchPlaylists({ q, page, limit: SEARCH_LIMIT, sort: srt });
+      const { results, pagination } = res.data;
+
+      setSearchResults(prev => append ? [...prev, ...results] : results);
+      setSearchTotal(pagination.total);
       setSearchPage(page);
-    } catch (err) { console.error("Search failed", err); }
-    finally { setSearching(false); }
+      setHasMore(pagination.hasNext);
+    } catch (err) {
+      console.error("Search failed", err);
+    } finally {
+      setSearching(false);
+      setLoadingMore(false);
+      fetchingRef.current = false;
+    }
   };
 
+  /* ── Load next page (called by sentinel) ── */
+  const loadNextPage = useCallback(() => {
+    if (!hasMore || loadingMore || searching || fetchingRef.current) return;
+    runSearch(activeQuery, searchPage + 1, sort, true);
+  }, [hasMore, loadingMore, searching, activeQuery, searchPage, sort]);
+
+  /* ── New search submit ── */
   const handleSubmit = (e) => {
     e?.preventDefault();
     const q = inputVal.trim();
@@ -314,25 +333,26 @@ export default function Explore() {
     setActiveQuery(q);
     setSort("relevance");
     setSearchParams({ q });
-    runSearch(q, 1, "relevance");
+    setSearchResults([]);
+    runSearch(q, 1, "relevance", false);
   };
 
+  /* ── Sort change: restart from page 1 ── */
   const handleSortChange = (newSort) => {
     setSort(newSort);
-    runSearch(activeQuery, 1, newSort);
+    setSearchResults([]);
+    runSearch(activeQuery, 1, newSort, false);
   };
 
-  const handlePageChange = (pg) => {
-    runSearch(activeQuery, pg, sort);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+  /* ── Clear ── */
   const clearSearch = () => {
     setInputVal("");
     setActiveQuery("");
     setSearchResults([]);
     setSearchTotal(0);
     setSearched(false);
+    setHasMore(false);
+    setSearchPage(1);
     setSearchParams({});
   };
 
@@ -349,8 +369,8 @@ export default function Explore() {
     catch (err) { console.error(err); }
   };
 
-  const sectionData = { trending, topRated, newest };
-  const currentList = sectionData[activeSection] || [];
+  const sectionData  = { trending, topRated, newest };
+  const currentList  = sectionData[activeSection] || [];
 
   return (
     <div className="ex-root">
@@ -428,18 +448,20 @@ export default function Explore() {
               </div>
             </div>
 
+            {/* Initial skeleton */}
             {searching && (
               <div className="ex-grid">
                 {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} i={i} />)}
               </div>
             )}
 
+            {/* Results grid */}
             {!searching && searchResults.length > 0 && (
               <>
                 <div className="ex-grid">
                   {searchResults.map((p, i) => (
                     <PlaylistCard
-                      key={p._id}
+                      key={`${p._id}-${i}`}
                       playlist={p}
                       index={i}
                       savedIds={savedIds}
@@ -448,10 +470,29 @@ export default function Explore() {
                     />
                   ))}
                 </div>
-                <Pagination current={searchPage} total={searchPages} onChange={handlePageChange} />
+
+                {/* Loading more skeletons */}
+                {loadingMore && (
+                  <div className="ex-grid ex-grid--more">
+                    {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} i={i} />)}
+                  </div>
+                )}
+
+                {/* Invisible sentinel — triggers next page load */}
+                {hasMore && !loadingMore && (
+                  <ScrollSentinel onVisible={loadNextPage} />
+                )}
+
+                {/* End of results indicator */}
+                {!hasMore && !loadingMore && (
+                  <div className="ex-end-label">
+                    <span>— {searchTotal.toLocaleString()} results —</span>
+                  </div>
+                )}
               </>
             )}
 
+            {/* No results */}
             {!searching && searchResults.length === 0 && (
               <div className="ex-empty-search">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
