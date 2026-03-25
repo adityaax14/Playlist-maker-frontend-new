@@ -29,11 +29,13 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function PlaylistDetail() {
   const { playlistId, videoId } = useParams();
   const navigate  = useNavigate();
   const location  = useLocation();
+  const { user }  = useAuth();
 
   const [playlist,         setPlaylist]         = useState(null);
   const [videoInput,       setVideoInput]        = useState("");
@@ -57,8 +59,6 @@ export default function PlaylistDetail() {
 
   const playerRef    = useRef(null);
   const backPath     = useRef(location.state?.from || "/dashboard");
-
-  /* ── Drag refs ── */
   const dragItem     = useRef(null);
   const dragOverItem = useRef(null);
 
@@ -105,6 +105,18 @@ export default function PlaylistDetail() {
     }
   };
 
+  function formatMinutes(mins) {
+  if (!mins && mins !== 0) return "0m";
+
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+
+  return `${h}h ${m}m`;
+}
+
   const handleNext = () => {
     if (currentIndex < playlist.videos.length - 1) {
       const next = playlist.videos[currentIndex + 1];
@@ -126,16 +138,13 @@ export default function PlaylistDetail() {
     const draggedItem = videos.splice(dragItem.current, 1)[0];
     videos.splice(dragOverItem.current, 0, draggedItem);
 
-    // Optimistic UI update
     setPlaylist((prev) => ({ ...prev, videos }));
 
-    // Persist to backend
     const videoOrder = videos.map((v, i) => ({ videoId: v._id, order: i + 1 }));
     try {
       await reorderVideos(playlistId, videoOrder);
     } catch (err) {
       console.error("Reorder failed", err);
-      // Optionally revert here by reloading playlist
     }
 
     dragItem.current     = null;
@@ -266,10 +275,17 @@ export default function PlaylistDetail() {
 
   /* ── Helpers ── */
   function formatDuration(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${String(secs).padStart(2, "0")}`;
-  }
+  if (!seconds && seconds !== 0) return "0m";
+
+  const totalMinutes = Math.floor(seconds / 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+
+  return `${h}h ${m}m`;
+}
 
   /* ── Analytics ── */
   const loadAnalytics = async () => {
@@ -304,6 +320,10 @@ export default function PlaylistDetail() {
   };
 
   if (!playlist) return <p>Loading...</p>;
+  const hasVideos = playlist.videos?.length > 0;
+
+  // ── Owner check (after playlist is loaded) ──
+  const isOwner = user?._id === playlist.creator?._id?.toString();
 
   return (
     <div className="playlist-page">
@@ -327,7 +347,9 @@ export default function PlaylistDetail() {
 
         <h1 className="playlist-title-glow">{playlist.title}</h1>
 
-        <div className="playlist-progress">
+       {hasVideos && (
+<div className="playlist-progress">  
+
           <div className="playlist-progress-bar">
             <div
               className="playlist-progress-fill"
@@ -336,10 +358,14 @@ export default function PlaylistDetail() {
           </div>
           <span>{playlistProgress}% completed</span>
         </div>
+       )}
       </div>
+        
+        
 
       {/* ── Goal Buttons ── */}
-      <div className="goal-buttons">
+      {hasVideos && (
+<div className="goal-buttons">
         <button className="set-goal-btn" onClick={() => setShowGoalModal(true)}>
           Set Goal
         </button>
@@ -353,92 +379,130 @@ export default function PlaylistDetail() {
           Track Goal
         </button>
       </div>
+      )}
 
       {/* ── Analytics Panel ── */}
       {showAnalytics && goalData && (
-        <>
-          <div className="insight-bar">
-            <span className={`status-badge ${goalData.status}`}>
-              {goalData.status === "ahead"    && "Ahead"}
-              {goalData.status === "on_track" && "On Track"}
-              {goalData.status === "behind"   && "Behind"}
-            </span>
-            <span className="projection-text">{goalData.projectedMessage}</span>
-          </div>
+  <>
+    <div className="insight-bar">
+      <span className={`status-badge ${goalData.status}`}>
+        {goalData.status === "ahead" && " Ahead"}
+        {goalData.status === "on_track" && " On Track"}
+        {goalData.status === "behind" && " Behind"}
+      </span>
 
-          <div className="analytics-container">
-            <div className="analytics-card today-card">
-              <h3>Today</h3>
-              <div className="today-main">
-                <span className="today-actual">{goalData.todayActualMinutes}</span>
-                <span className="today-divider">/</span>
-                <span className="today-target">{goalData.todayTargetMinutes} min</span>
-              </div>
-              <div className={goalData.todayDiffMinutes >= 0 ? "diff positive" : "diff negative"}>
-                {goalData.todayDiffMinutes >= 0 ? "+" : ""}{goalData.todayDiffMinutes} min
-              </div>
-            </div>
+      {/* projectedMessage is text — do NOT format */}
+      <span className="projection-text">
+        {goalData.projectedMessage}
+      </span>
+    </div>
 
-            <div className="analytics-card">
-              <h3>Your Pace</h3>
-              <p>{goalData.yourPaceMinutes} min/day</p>
-            </div>
+    <div className="analytics-container">
+      <div className="analytics-card today-card">
+        <h3>Today</h3>
 
-            <div className="analytics-card">
-              <h3>Total Backlog</h3>
-              <p className={
-                goalData.backlogMinutes > 0 ? "backlog behind" :
-                goalData.backlogMinutes < 0 ? "backlog ahead"  : "backlog neutral"
-              }>
-                {goalData.backlogMinutes > 0 && "+"}{goalData.backlogMinutes} min
-              </p>
-              <span className="backlog-label">
-                {goalData.backlogMinutes > 0  && "behind"}
-                {goalData.backlogMinutes < 0  && "ahead"}
-                {goalData.backlogMinutes === 0 && "on track"}
-              </span>
-            </div>
+        <div className="today-main">
+          <span className="today-actual">
+            {formatMinutes(goalData.todayActualMinutes)}
+          </span>
 
-            <div className="analytics-card">
-              <h3>Last 7 Days</h3>
-              <p>{goalData.burnRateMinutes} min/day</p>
-            </div>
-          </div>
+          <span className="today-divider">/</span>
 
-          <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="cumulativeExpectedMinutes" stroke="#8884d8" strokeDasharray="5 5" name="Goal" />
-                <Line type="monotone" dataKey="cumulativeActualMinutes"   stroke="#e8e8e8" strokeWidth={3} name="You" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <span className="today-target">
+            {formatMinutes(goalData.todayTargetMinutes)}
+          </span>
+        </div>
 
-          <div className="action-feedback">
-            {goalData.todayDiffMinutes < 0 ? (
-              <p className="warning">
-                ⚠️ Watch {Math.abs(goalData.todayDiffMinutes)} more min today to stay on track.
-              </p>
-            ) : (
-              <p className="success">✅ You're ahead today! Keep it up</p>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* ── Add Video ── */}
-      <div className="add-video-box">
-        <input
-          type="text"
-          placeholder="Paste YouTube video or playlist URL"
-          value={videoInput}
-          onChange={(e) => setVideoInput(e.target.value)}
-        />
-        <button onClick={handleAddVideo}>Add</button>
+        <div className={goalData.todayDiffMinutes >= 0 ? "diff positive" : "diff negative"}>
+          {goalData.todayDiffMinutes >= 0 ? "+" : ""}
+          {formatMinutes(Math.abs(goalData.todayDiffMinutes))}
+        </div>
       </div>
+
+      <div className="analytics-card">
+        <h3>Your Pace</h3>
+        <p>{formatMinutes(goalData.yourPaceMinutes)} /day</p>
+      </div>
+
+      <div className="analytics-card">
+        <h3>Total Backlog</h3>
+
+        <p
+          className={
+            goalData.backlogMinutes > 0
+              ? "backlog ahead"
+              : goalData.backlogMinutes < 0
+              ? "backlog behind"
+              : "backlog neutral"
+          }
+        >
+          {goalData.backlogMinutes > 0 && "+"}
+          {formatMinutes(Math.abs(goalData.backlogMinutes))}
+        </p>
+
+        <span className="backlog-label">
+          {goalData.backlogMinutes > 0 && "ahead"}
+          {goalData.backlogMinutes < 0 && "behind"}
+          {goalData.backlogMinutes === 0 && "on track"}
+        </span>
+      </div>
+
+      <div className="analytics-card">
+        <h3>Last 7 Days</h3>
+        <p>{formatMinutes(goalData.burnRateMinutes)} /day</p>
+      </div>
+    </div>
+
+    <div className="chart-container">
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData}>
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="cumulativeExpectedMinutes"
+            stroke="#8884d8"
+            strokeDasharray="5 5"
+            name="Goal"
+          />
+          <Line
+            type="monotone"
+            dataKey="cumulativeActualMinutes"
+            stroke="#e8e8e8"
+            strokeWidth={3}
+            name="You"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+
+    <div className="action-feedback">
+      {goalData.todayDiffMinutes < 0 ? (
+        <p className="warning">
+          ⚠️ Watch{" "}
+          {formatMinutes(Math.abs(goalData.todayDiffMinutes))} more today to stay on track.
+        </p>
+      ) : (
+        <p className="success">
+          You're ahead today! Keep it up
+        </p>
+      )}
+    </div>
+  </>
+)}
+      {/* ── Add Video — owner only ── */}
+      {isOwner && hasVideos && (
+        <div className="add-video-box">
+          <input
+            type="text"
+            placeholder="Paste YouTube video or playlist URL"
+            value={videoInput}
+            onChange={(e) => setVideoInput(e.target.value)}
+          />
+          <button onClick={handleAddVideo}>Add</button>
+        </div>
+      )}
 
       {/* ── Goal Modal ── */}
       {showGoalModal && (
@@ -446,27 +510,11 @@ export default function PlaylistDetail() {
           <div className="goal-modal-content">
             <h2>Set Your Goal</h2>
             <select value={goalType} onChange={(e) => setGoalType(e.target.value)}>
-              <option value="days">Finish in X Days</option>
-              <option value="daily_minutes">Watch X min/day</option>
               <option value="target_date">Finish by Date</option>
+              <option value="daily_minutes">Watch X min/day</option>
+              
             </select>
 
-            {goalType === "days" && (
-              <input
-                type="number"
-                placeholder="Enter number of days"
-                value={targetDays}
-                onChange={(e) => setTargetDays(e.target.value)}
-              />
-            )}
-            {goalType === "daily_minutes" && (
-              <input
-                type="number"
-                placeholder="Minutes per day (e.g. 60)"
-                value={dailyMinutes}
-                onChange={(e) => setDailyMinutes(e.target.value)}
-              />
-            )}
             {goalType === "target_date" && (
               <input
                 type="date"
@@ -475,6 +523,15 @@ export default function PlaylistDetail() {
               />
             )}
 
+            {goalType === "daily_minutes" && (
+              <input
+                type="number"
+                placeholder="Minutes per day (e.g. 60)"
+                value={dailyMinutes}
+                onChange={(e) => setDailyMinutes(e.target.value)}
+              />
+            )}
+           
             <div className="goal-modal-buttons">
               <button onClick={handleSetGoal}>Save Goal</button>
               <button onClick={() => setShowGoalModal(false)} className="cancel-btn">
@@ -486,7 +543,9 @@ export default function PlaylistDetail() {
       )}
 
       {/* ── Player + Notes ── */}
-      <div className="player-layout">
+      {/* ── Player + Notes ── */}
+{playlist.videos?.length > 0 && (
+<div className="player-layout">
         <div className="video-player" ref={playerRef}>
           {activeVideo && (
             <YouTube
@@ -532,7 +591,11 @@ export default function PlaylistDetail() {
           </button>
         </div>
       </div>
-       <p className="drag-hint">
+)}
+
+      {/* ── Drag hint — owner only ── */}
+      {isOwner && playlist.videos?.length > 0 && (
+        <p className="drag-hint">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="9"  cy="5"  r="1" fill="currentColor"/>
             <circle cx="15" cy="5"  r="1" fill="currentColor"/>
@@ -541,85 +604,114 @@ export default function PlaylistDetail() {
             <circle cx="9"  cy="19" r="1" fill="currentColor"/>
             <circle cx="15" cy="19" r="1" fill="currentColor"/>
           </svg>
-          Drag to reorder
+          Drag cards to reorder
         </p>
+      )}
 
-      {/* ── Video List with Drag & Drop ── */}
-      <div className="video-list">
-       
-
-        {playlist.videos?.map((video, index) => {
-          const progress = progressMap[video._id];
-          const status   = !progress        ? "not-started"
-                         : progress.completed ? "completed" : "in-progress";
-
-          return (
-            <div
-              key={video._id}
-              className={`video-card ${activeVideo?._id === video._id ? "video-card--active" : ""}`}
-              draggable
-              onDragStart={() => { dragItem.current = index; }}
-              onDragEnter={() => { dragOverItem.current = index; }}
-              onDragEnd={handleDragEnd}
-              onDragOver={(e) => e.preventDefault()}
-              onClick={async () => {
-                try {
-                  await updateVideoProgress(playlistId, video._id, 1);
-                  setProgressMap((prev) => ({
-                    ...prev,
-                    [video._id]: { ...(prev[video._id] || {}), completed: false, seconds: 1 }
-                  }));
-                } catch {}
-                setActiveVideo(video);
-                navigate(`/playlist/${playlistId}/${video._id}`);
-                scrollToPlayer();
-              }}
-            >
-              {/* Drag handle */}
-              <div
-                className="drag-handle"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="9"  cy="5"  r="1" fill="currentColor"/>
-                  <circle cx="15" cy="5"  r="1" fill="currentColor"/>
-                  <circle cx="9"  cy="12" r="1" fill="currentColor"/>
-                  <circle cx="15" cy="12" r="1" fill="currentColor"/>
-                  <circle cx="9"  cy="19" r="1" fill="currentColor"/>
-                  <circle cx="15" cy="19" r="1" fill="currentColor"/>
-                </svg>
-              </div>
-
-              <img src={video.thumbnailUrl} alt={video.title} className="video-thumb" />
-
-              <div className="video-details">
-                <h4 className="video-title">{video.title}</h4>
-
-                <div className="video-meta-row">
-                  <span className="video-duration">{formatDuration(video.duration)}</span>
-                  {status === "completed"   && <span className="status-badge completed">Completed</span>}
-                  {status === "in-progress" && <span className="status-badge in-progress">In Progress</span>}
-                </div>
-
-                <div className="video-actions">
-                  <button
-                    className="complete-btn"
-                    onClick={(e) => { e.stopPropagation(); handleMarkCompleted(video._id); }}
-                  >
-                    {status === "completed" ? "Mark In Progress" : "Mark Complete"}
-                  </button>
-                  <button
-                    className="delete-video-btn"
-                    onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video._id); }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+      {/* ── Video List or Empty State ── */}
+      {playlist.videos?.length === 0 ? (
+        <div className="empty-playlist">
+          <div className="empty-playlist-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <rect x="3" y="3" width="18" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+              <path d="M10 9.5l5-3v6l-5-3z" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <h3 className="empty-playlist-title">No videos yet</h3>
+          <p className="empty-playlist-sub">
+            {isOwner
+              ? "Your playlist is empty. Add a YouTube video or import an entire playlist to get started."
+              : "The creator hasn't added any videos to this playlist yet. Check back later."}
+          </p>
+          {isOwner && (
+            <div className="add-video-box empty-add-box">
+              <input
+                type="text"
+                placeholder="Paste YouTube video or playlist URL"
+                value={videoInput}
+                onChange={(e) => setVideoInput(e.target.value)}
+              />
+              <button onClick={handleAddVideo}>Add</button>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      ) : (
+        <div className="video-list">
+          {playlist.videos?.map((video, index) => {
+            const progress = progressMap[video._id];
+            const status   = !progress          ? "not-started"
+                           : progress.completed ? "completed" : "in-progress";
+
+            return (
+              <div
+                key={video._id}
+                className={`video-card ${activeVideo?._id === video._id ? "video-card--active" : ""}`}
+                draggable={isOwner}
+                onDragStart={isOwner ? () => { dragItem.current = index; } : undefined}
+                onDragEnter={isOwner ? () => { dragOverItem.current = index; } : undefined}
+                onDragEnd={isOwner ? handleDragEnd : undefined}
+                onDragOver={isOwner ? (e) => e.preventDefault() : undefined}
+                onClick={async () => {
+                  try {
+                    await updateVideoProgress(playlistId, video._id, 1);
+                    setProgressMap((prev) => ({
+                      ...prev,
+                      [video._id]: { ...(prev[video._id] || {}), completed: false, seconds: 1 }
+                    }));
+                  } catch {}
+                  setActiveVideo(video);
+                  navigate(`/playlist/${playlistId}/${video._id}`);
+                  scrollToPlayer();
+                }}
+              >
+                {/* Drag handle — owner only */}
+                {isOwner && (
+                  <div className="drag-handle" onClick={(e) => e.stopPropagation()}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="9"  cy="5"  r="1" fill="currentColor"/>
+                      <circle cx="15" cy="5"  r="1" fill="currentColor"/>
+                      <circle cx="9"  cy="12" r="1" fill="currentColor"/>
+                      <circle cx="15" cy="12" r="1" fill="currentColor"/>
+                      <circle cx="9"  cy="19" r="1" fill="currentColor"/>
+                      <circle cx="15" cy="19" r="1" fill="currentColor"/>
+                    </svg>
+                  </div>
+                )}
+
+                <img src={video.thumbnailUrl} alt={video.title} className="video-thumb" />
+
+                <div className="video-details">
+                  <h4 className="video-title">{video.title}</h4>
+
+                  <div className="video-meta-row">
+                    <span className="video-duration">{formatDuration(video.duration)}</span>
+                    {status === "completed"   && <span className="status-badge completed">Completed</span>}
+                    {status === "in-progress" && <span className="status-badge in-progress">In Progress</span>}
+                  </div>
+
+                  <div className="video-actions">
+                    <button
+                      className="complete-btn"
+                      onClick={(e) => { e.stopPropagation(); handleMarkCompleted(video._id); }}
+                    >
+                      {status === "completed" ? "Mark In Progress" : "Mark Complete"}
+                    </button>
+                    {isOwner && (
+                      <button
+                        className="delete-video-btn"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video._id); }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );
