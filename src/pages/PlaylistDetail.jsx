@@ -153,23 +153,28 @@ export default function PlaylistDetail() {
 
   /* ── Add Video ── */
   const handleAddVideo = async () => {
-    if (!videoInput) return;
-    try {
-      const url             = new URL(videoInput);
-      const videoIdParam    = url.searchParams.get("v");
-      const playlistIdParam = url.searchParams.get("list");
+  if (!videoInput) return;
+  try {
+    const url = new URL(videoInput);
+    const playlistIdParam = url.searchParams.get("list");
 
-      if (playlistIdParam) {
-        await importYoutubePlaylist(playlistId, playlistIdParam);
-      } else if (videoIdParam) {
-        await addVideoToPlaylist(playlistId, { youtubeVideoId: videoIdParam });
-      }
-      window.location.reload();
-    } catch {
-      alert("Invalid YouTube link");
+    // Handle youtu.be short links (YouTube app share format)
+    // e.g. https://youtu.be/VIDEO_ID?si=...
+    const isShortLink = url.hostname === "youtu.be";
+    const videoIdParam = isShortLink
+      ? url.pathname.slice(1)                // extract ID from path
+      : url.searchParams.get("v");           // extract ID from query param
+
+    if (playlistIdParam) {
+      await importYoutubePlaylist(playlistId, playlistIdParam);
+    } else if (videoIdParam) {
+      await addVideoToPlaylist(playlistId, { youtubeVideoId: videoIdParam });
     }
-  };
-
+    window.location.reload();
+  } catch {
+    alert("Invalid YouTube link");
+  }
+};
   const handleDeleteVideo = async (vid) => {
     await deleteVideoFromPlaylist(playlistId, vid);
     window.location.reload();
