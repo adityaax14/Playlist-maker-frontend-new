@@ -25,31 +25,34 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      
-      <Route
-        path="/dashboard"
-        element={
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/explore" element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
+              <Explore />
+            </ProtectedRoute>
         }
-      />
-      <Route path="/explore" element={
-        <ProtectedRoute>
-            <Explore />
-          </ProtectedRoute>
-      }
-      />
-      <Route path="/playlist/:playlistId/:videoId?" element={<PlaylistDetail />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      
+        />
+        <Route path="/playlist/:playlistId/:videoId?" element={<PlaylistDetail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        
 
-    </Routes>
+      </Routes>
+      <Analytics />
+    </>
   );
 }
