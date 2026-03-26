@@ -155,13 +155,22 @@ export default function PlaylistDetail() {
   /* ── Add Video ── */
   const handleAddVideo = async () => {
   if (!videoInput || isAdding) return;
-  try {
-    setIsAdding(true);
-    const url = new URL(videoInput);
-    const playlistIdParam = url.searchParams.get("list");
 
-    const isShortLink = url.hostname === "youtu.be";
-    const videoIdParam = isShortLink
+  // ✅ validate BEFORE setting loading state
+  let url;
+  try {
+    url = new URL(videoInput);
+  } catch {
+    alert("Invalid YouTube link");
+    return; // exit early, never touch isAdding
+  }
+
+  setIsAdding(true); // ✅ now this is guaranteed to render
+
+  try {
+    const playlistIdParam = url.searchParams.get("list");
+    const isShortLink     = url.hostname === "youtu.be";
+    const videoIdParam    = isShortLink
       ? url.pathname.slice(1)
       : url.searchParams.get("v");
 
@@ -169,17 +178,18 @@ export default function PlaylistDetail() {
       await importYoutubePlaylist(playlistId, playlistIdParam);
     } else if (videoIdParam) {
       await addVideoToPlaylist(playlistId, { youtubeVideoId: videoIdParam });
+    } else {
+      alert("No video or playlist found in this link");
+      setIsAdding(false);
+      return;
     }
+
     window.location.reload();
   } catch {
-    alert("Invalid YouTube link");
-    setIsAdding(false); // only reset on error; reload handles success
+    alert("Failed to add video. Try again.");
+    setIsAdding(false);
   }
 };
-  const handleDeleteVideo = async (vid) => {
-    await deleteVideoFromPlaylist(playlistId, vid);
-    window.location.reload();
-  };
 
   /* ── Load Note ── */
   useEffect(() => {
