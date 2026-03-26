@@ -8,6 +8,7 @@ import Explore from "./pages/Explore.jsx";
 import PlaylistDetail from "./pages/PlaylistDetail.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import { Analytics } from "@vercel/analytics/next"
 
 
 
