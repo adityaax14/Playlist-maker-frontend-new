@@ -56,6 +56,7 @@ export default function PlaylistDetail() {
   const [targetDays,       setTargetDays]        = useState("");
   const [dailyMinutes,     setDailyMinutes]      = useState("");
   const [targetDate,       setTargetDate]        = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const playerRef    = useRef(null);
   const backPath     = useRef(location.state?.from || "/dashboard");
@@ -153,17 +154,16 @@ export default function PlaylistDetail() {
 
   /* ── Add Video ── */
   const handleAddVideo = async () => {
-  if (!videoInput) return;
+  if (!videoInput || isAdding) return;
   try {
+    setIsAdding(true);
     const url = new URL(videoInput);
     const playlistIdParam = url.searchParams.get("list");
 
-    // Handle youtu.be short links (YouTube app share format)
-    // e.g. https://youtu.be/VIDEO_ID?si=...
     const isShortLink = url.hostname === "youtu.be";
     const videoIdParam = isShortLink
-      ? url.pathname.slice(1)                // extract ID from path
-      : url.searchParams.get("v");           // extract ID from query param
+      ? url.pathname.slice(1)
+      : url.searchParams.get("v");
 
     if (playlistIdParam) {
       await importYoutubePlaylist(playlistId, playlistIdParam);
@@ -173,6 +173,7 @@ export default function PlaylistDetail() {
     window.location.reload();
   } catch {
     alert("Invalid YouTube link");
+    setIsAdding(false); // only reset on error; reload handles success
   }
 };
   const handleDeleteVideo = async (vid) => {
@@ -506,7 +507,9 @@ export default function PlaylistDetail() {
             value={videoInput}
             onChange={(e) => setVideoInput(e.target.value)}
           />
-          <button onClick={handleAddVideo}>Add</button>
+         <button onClick={handleAddVideo} disabled={isAdding}>
+  {isAdding ? "Adding..." : "Add"}
+</button>
         </div>
       )}
 
