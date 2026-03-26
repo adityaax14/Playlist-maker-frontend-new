@@ -222,17 +222,17 @@ export default function Dashboard() {
   };
 
   const loadSaved = async () => {
-    setLoadingSaved(true);
-    try {
-      const res = await getSavedPlaylists();
-      setSaved(res.data || []);
-    } catch (err) {
-      console.error(err);
-      setSaved([]);
-    } finally {
-      setLoadingSaved(false);
-    }
-  };
+  setLoadingSaved(true);
+  try {
+    const res = await getSavedPlaylists();
+    setSaved((res.data || []).filter(Boolean)); // ✅ strips null entries
+  } catch (err) {
+    console.error(err);
+    setSaved([]);
+  } finally {
+    setLoadingSaved(false);
+  }
+};
 
   const handleLogout = async () => {
     try { await logoutUser(); navigate("/login"); }
