@@ -508,7 +508,7 @@ export default function PlaylistDetail() {
             onChange={(e) => setVideoInput(e.target.value)}
           />
          <button onClick={handleAddVideo} disabled={isAdding}>
-  {isAdding ? "Adding..." : "Add"}
+  {isAdding ? "Adding...." : "Add"}
 </button>
         </div>
       )}
