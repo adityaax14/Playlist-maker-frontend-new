@@ -303,7 +303,7 @@ export default function Dashboard() {
           <span>PlaylistHub</span>
         </div>
         <div className="db-nav-actions">
-          <button className="db-nav-btn" onClick={() => navigate("/explore")}>Explore</button>
+         <button className="db-nav-btn db-nav-btn--explore" onClick={() => navigate("/explore")}>Explore</button>
           <button
             className="db-nav-create"
             onClick={() => { setShowForm((v) => !v); setEditingId(null); }}

@@ -1211,3 +1211,13 @@ html, body {
     display: none; /* hide text, keep icon */
   }
 }
+/* Hide all .db-nav-btn EXCEPT Explore */
+.db-nav-btn:not(.db-nav-btn--explore) { display: none; }
+
+.db-nav-btn--explore {
+  display: inline-flex;
+  padding: 6px 11px;
+  font-size: 12px;
+}
+
+.db-nav-btn:not(.db-nav-btn--explore) { display: none; }
