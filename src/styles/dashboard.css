@@ -1174,3 +1174,40 @@ html, body {
     font-size: 12px;
   }
 }
+@media (max-width: 640px) {
+  .db-nav {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .db-nav-actions {
+    gap: 6px;
+  }
+
+  /* Hide lower-priority nav buttons on small screens */
+  .db-nav-btn {
+    display: none;
+  }
+
+  /* Keep Explore (or whichever .db-nav-btn you want) visible */
+  .db-nav-btn--explore {
+    display: inline-flex;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .db-nav-create {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .db-nav-logout {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  /* Shrink brand label if needed */
+  .db-nav-brand span {
+    display: none; /* hide text, keep icon */
+  }
+}
