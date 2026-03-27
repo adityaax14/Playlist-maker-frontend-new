@@ -928,3 +928,332 @@
 }
 
 html, body { overflow-x: hidden; }
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+  .player-layout       { grid-template-columns: 1fr; }
+  .analytics-container { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Narrow tablet (≤ 900px) ── */
+@media (max-width: 900px) {
+  .player-layout       { padding: 16px 20px; }
+  .notes-panel         { position: static; }
+  .playlist-title-glow { font-size: 26px; }
+
+  .playlist-header,
+  .add-video-box,
+  .goal-buttons,
+  .analytics-container,
+  .chart-container,
+  .action-feedback,
+  .insight-bar,
+  .video-list,
+  .drag-hint {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .playlist-header { padding-top: 28px; padding-bottom: 20px; }
+  .back-btn        { position: static; margin-bottom: 12px; }
+  .streak-badge    { position: static; margin-bottom: 12px; }
+  .empty-playlist  { padding: 60px 20px 80px; }
+}
+
+/* ── Mobile (≤ 640px) ── */
+@media (max-width: 640px) {
+
+  /* ── Shell ── */
+  html, body { overflow-x: hidden; }
+
+  .playlist-page { padding-bottom: 80px; }
+
+  /* ── Header ── */
+  .playlist-header {
+    padding: 14px 14px 16px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .back-btn {
+    position: static !important;
+    padding: 9px 14px;
+    font-size: 13px;
+    min-height: 38px;
+  }
+
+  .streak-badge {
+    position: static !important;
+    font-size: 12px;
+    padding: 6px 13px;
+    align-self: flex-start;
+  }
+
+  .continue-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .playlist-title-glow {
+    font-size: 20px !important;
+    letter-spacing: -0.025em;
+    margin-bottom: 10px;
+  }
+
+  .playlist-progress { max-width: 100%; }
+
+  /* ── Goal buttons ── */
+  .goal-buttons {
+    padding: 12px 14px !important;
+    gap: 8px;
+  }
+
+  .set-goal-btn,
+  .track-goal-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+
+  /* ── Add video ── */
+  .add-video-box {
+    flex-direction: column !important;
+    padding: 12px 14px !important;
+    gap: 8px;
+  }
+
+  .add-video-box input {
+    font-size: 16px; /* prevents iOS auto-zoom */
+    padding: 13px 14px;
+    min-height: 44px;
+  }
+
+  .add-video-box button {
+    width: 100%;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* ── Insight bar ── */
+  .insight-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px 14px !important;
+  }
+
+  .projection-text { font-size: 12px; }
+
+  /* ── Analytics cards ── */
+  .analytics-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+    padding: 14px 14px 4px !important;
+  }
+
+  .analytics-card {
+    padding: 16px 14px 14px;
+    border-radius: var(--radius);
+  }
+
+  .analytics-card h3 { font-size: 9px; margin-bottom: 10px; }
+  .analytics-card p  { font-size: 22px; }
+
+  .today-actual  { font-size: 30px; }
+  .today-divider { font-size: 16px; }
+  .today-target  { font-size: 12px; }
+
+  .backlog { font-size: 22px; }
+
+  /* ── Chart ── */
+  .chart-container {
+    margin: 8px 14px !important;
+    padding: 36px 12px 16px;
+    border-radius: var(--radius);
+  }
+
+  /* ── Action feedback ── */
+  .action-feedback {
+    margin: 8px 14px 16px !important;
+    font-size: 12px;
+  }
+
+  /* ── Goal modal ── */
+  .goal-modal-content {
+    margin: 0 14px;
+    padding: 22px 16px !important;
+    border-radius: var(--radius-lg) !important;
+    gap: 12px;
+  }
+
+  .goal-modal-content h2 { font-size: 17px; }
+
+  .goal-modal-content select,
+  .goal-modal-content input[type="number"],
+  .goal-modal-content input[type="date"] {
+    font-size: 16px; /* prevents iOS auto-zoom */
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .goal-modal-buttons { flex-direction: column; gap: 8px; }
+
+  .goal-modal-buttons button:first-child,
+  .cancel-btn {
+    width: 100%;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* ── Player layout ── */
+  .player-layout {
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .video-player {
+    border-radius: 0 !important;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+
+  .video-player iframe {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16/9;
+  }
+
+  .lesson-navigation {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  /* ── Notes ── */
+  .notes-panel {
+    border-radius: 0 !important;
+    border-left: none;
+    border-right: none;
+    padding: 16px 14px !important;
+  }
+
+  .notes-panel textarea {
+    font-size: 16px; /* prevents iOS auto-zoom */
+    min-height: 110px;
+  }
+
+  .save-note-btn {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  /* ── Drag hint ── */
+  .drag-hint {
+    padding: 8px 14px 6px !important;
+    font-size: 10px;
+  }
+
+  /* ── Video list — horizontal rows ── */
+  .video-list {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0;
+    padding: 0 !important;
+  }
+
+  .video-card {
+    flex-direction: row !important;
+    align-items: flex-start;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    gap: 12px;
+    padding: 12px 14px;
+    /* kill thumbnail hover scale from leaking into list */
+    overflow: visible;
+  }
+
+  .video-card:first-child { border-top: 1px solid var(--border); }
+
+  /* Override column thumbnail */
+  .video-thumb {
+    width: 104px !important;
+    min-width: 104px;
+    height: 64px !important;
+    aspect-ratio: unset !important;
+    border-radius: var(--radius-xs) !important;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  /* Kill thumbnail zoom in row layout */
+  .video-card:hover .video-thumb { transform: none; }
+
+  .video-details {
+    flex: 1;
+    min-width: 0;
+    padding: 0 !important;
+  }
+
+  .video-title {
+    font-size: 13px !important;
+    -webkit-line-clamp: 2;
+    white-space: normal !important;
+    margin-bottom: 4px;
+  }
+
+  .video-duration  { font-size: 11px !important; }
+  .status-badge    { font-size: 10px !important; padding: 2px 7px !important; }
+
+  .video-actions { gap: 6px; margin-top: 6px; }
+
+  .complete-btn,
+  .delete-video-btn {
+    padding: 7px 8px;
+    font-size: 11px !important;
+    min-height: 32px;
+  }
+
+  /* Drag handle — always visible in row layout */
+  .drag-handle {
+    top: 50%;
+    left: auto;
+    right: 8px;
+    transform: translateY(-50%);
+    opacity: 0.4;
+  }
+
+  /* ── Empty state ── */
+  .empty-playlist {
+    padding: 48px 14px 64px !important;
+    gap: 12px;
+  }
+
+  .empty-playlist-icon  { width: 72px; height: 72px; }
+  .empty-playlist-title { font-size: 18px !important; }
+  .empty-playlist-sub   { font-size: 13px !important; }
+
+  .empty-add-box {
+    flex-direction: column !important;
+    padding: 0 !important;
+    gap: 8px;
+    max-width: 100%;
+  }
+}
