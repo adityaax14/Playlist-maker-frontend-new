@@ -1153,3 +1153,14 @@ html, body {
   .ex-search-input { font-size: 16px; min-height: 44px; }
   .ex-search-btn   { width: 100%; min-height: 44px; }
 }
+.db-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
