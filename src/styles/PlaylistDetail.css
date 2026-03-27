@@ -1257,3 +1257,14 @@ html, body { overflow-x: hidden; }
     max-width: 100%;
   }
 }
+
+.db-nav-create {
+  padding: 7px 13px;
+  font-size: 12px;
+  gap: 5px;
+}
+
+.db-nav-btn {
+  padding: 6px 11px;
+  font-size: 12px;
+}
