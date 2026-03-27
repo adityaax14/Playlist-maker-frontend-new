@@ -1164,3 +1164,13 @@ html, body {
   align-items: center;
   gap: 8px;
 }
+@media (max-width: 768px) {
+  .db-nav-actions {
+    gap: 6px;
+  }
+
+  .db-nav-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
